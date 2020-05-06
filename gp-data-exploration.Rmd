@@ -1,6 +1,6 @@
 ---
-title: "Amistosa Ag Data Exploration"
-author: "Cameryn Brock"
+title: "Costa Rican Biological Corridors"
+author: "Cameryn Brock, Amistosa Ag"
 date: "5/5/2020"
 output: html_document
 ---
@@ -36,7 +36,9 @@ The original layer of biological corridors was also updated with the area occupi
 
 The file was prepared in January 2016 by Michael S. Arroyo Zeledón (michael.arroyo@agathos.cr).
 The use of the file requires the formal approval of the National System of Conservation Areas (SINAC) of Costa Rica.
-Extent
+
+**Extent**
+
 West -85.870802 East -82.590124 North 11.062940 South 8.373274
 
 
