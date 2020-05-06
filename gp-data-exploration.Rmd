@@ -87,12 +87,13 @@ ggplot(corridors) +
 
 ### We can plot using `tmap`!
 
+View basemape options here: http://leaflet-extras.github.io/leaflet-providers/preview/
 
 ```{r}
 
 tmap_mode("view")
 
-tm_basemap("CartoDB.VoyagerNoLabels") + # look up where to find other basemaps
+tm_basemap("CartoDB.VoyagerNoLabels") +
   tm_shape(corridors) + 
   tm_fill("name_ac",
           id = "name_ac",
