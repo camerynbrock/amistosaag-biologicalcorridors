@@ -1,0 +1,134 @@
+---
+title: "Amistosa Ag Data Exploration"
+author: "Cameryn Brock"
+date: "5/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+![](jaguar-cub-sd-zoo.jpg)
+
+
+*Adorable jaguar cub. Our work could actually help these little ones! Photo credit to [San Diego Zoo](https://kids.sandiegozoo.org/animals/jaguar).*
+
+# Biological Corridors
+
+The following is information given in the CB_2016.pdf file translated using Google Translate:
+
+**Biological Corridors / Costa Rica**
+
+The file was prepared as part of the analysis aimed at identifying structural connectivity routes between the protected wild areas of Costa Rica with the most restrictive conservation categories (national park and biological reserve), and on the condition that such routes were within the network of biological corridors existing in the Costa Rican territory.
+
+**Description**
+
+Vector file (.shp) and polygonal prepared in the ArcGIS 10.1 computer program from the layer prepared by SINAC (National System of Conservation Areas) that is available on the electronic page of the National System of Territorial Information (SNIT, http://www.snitcr.go.cr/). Such a layer was updated as described below.
+
+In the Tempisque Conservation Area (ACT), a review and update of the limits of the Chorotega biological corridor was carried out. The latter was divided into 10 biological corridors, due to the territorial management that is carried out in the Nicoya Peninsula. The work was carried out in conjunction with the coordinators of the different biological corridors in the ACT. The meetings with these coordinators were held on November 2 and 24, 2015, at the ACT office located in Hojancha.
+
+The original layer of biological corridors was also updated with the area occupied by the biological corridors Paso de las Lapas, Montes del Aguacate, Bosque de Agua and AMISTOSA. The limits of the first three runners were obtained as products of two consultancies in charge of the company Agathos Natura R.L. For its part, the limits of the AMISTOSA biological corridor were provided by the Osa Conservation Area (ACOSA). The updated file of biological corridors in Costa Rica is in projection CRTM05.
+
+**Credits**
+
+The file was prepared in January 2016 by Michael S. Arroyo Zeledón (michael.arroyo@agathos.cr).
+The use of the file requires the formal approval of the National System of Conservation Areas (SINAC) of Costa Rica.
+Extent
+West -85.870802 East -82.590124 North 11.062940 South 8.373274
+
+
+```{r}
+
+library(sf)
+library(ggmap)
+library(here)
+library(tidyverse)
+library(tmap)
+
+```
+
+```{r}
+
+corridors <- read_sf(dsn = here("Corredores biologicos"), layer = "Corredores_Biologicos")
+
+# view(corridors), names are in Spanish! 
+
+
+corridors <- corridors %>% 
+  rename("code" = "codigo",
+         "name_bc" = "nombre_cb", # bc = biological corridor
+         "name_ac" = "nombre_ac", # ac = area corridor
+         "shortname_ac" = "siglas_ac"
+         )
+
+# plot with base R's plot()
+
+plot(corridors)
+
+```
+
+### We can plot using `ggplot`!
+
+```{r}
+
+ggplot(corridors) + 
+  geom_sf(aes(fill = name_ac),
+          color = NA,
+          alpha = 0.7) + 
+  labs(fill = "Biological \nCorridor") + 
+  theme_minimal()
+
+```
+
+### We can plot using `tmap`!
+
+
+```{r}
+
+tmap_mode("view")
+
+tm_basemap("CartoDB.VoyagerNoLabels") + # look up where to find other basemaps
+  tm_shape(corridors) + 
+  tm_fill("name_ac",
+          id = "name_ac",
+          legend.show = FALSE) +
+  tm_layout(title = "Costa Rica Biological Corridors")
+
+```
+
+### We can plot using `ggmap`!
+
+Plotting with tmap is amazing. Unfortunately, as of now we can only use the basemaps in interactive viewing. For basemaps on a plot, we can use `ggmap`. Using `ggmap` requires getting an API key, which is a bit of a hassle but well worth it. Instructions are here: https://cran.r-project.org/web/packages/ggmap/readme/README.html
+
+For a ggmap cheatsheet, including the different basemaps in ggmaps, see: https://www.nceas.ucsb.edu/sites/default/files/2020-04/ggmapCheatsheet.pdf
+
+```{r}
+
+# get basemap
+
+costa_rica <- get_map(location = c(lon = -84.23046,
+                                   lat = 9.718107),
+                      zoom = 8,
+                      maptype = "terrain-background",
+                      source = "google")
+
+# start with ggmap() instead of ggplot(), then code as if you're in ggplot!
+
+ggmap(costa_rica) +
+  geom_sf(data = corridors,
+          aes(fill = name_ac),
+          color = NA,
+          alpha = 0.8,
+          inherit.aes = FALSE) + 
+  coord_sf(crs = st_crs(4326)) +
+  labs(fill = "Biological \nCorridor",
+       x = NULL,
+       y = NULL) + 
+  theme_minimal()
+  
+
+```
+
