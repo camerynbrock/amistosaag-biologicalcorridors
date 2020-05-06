@@ -72,7 +72,7 @@ plot(corridors)
 
 ```
 
-### We can plot using `ggplot`!
+### We can plot using `ggplot` & `sf`!
 
 ```{r}
 
