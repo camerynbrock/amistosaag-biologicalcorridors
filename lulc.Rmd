@@ -1,0 +1,118 @@
+---
+title: "Land Use and Land Cover in Amistosa Corridor (2019)"
+author: "Cameryn Brock"
+date: "5/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+Helpful guidance from here: https://www.nrel.colostate.edu/this-is-how-i-did-it-mapping-in-r-with-ggplot2
+
+```{r}
+
+library(raster)
+library(rasterVis)
+library(here)
+library(tidyverse)
+library(foreign) # for reading the dbf
+library(rgdal)
+library(janitor)
+library(ggmap)
+library(tmap)
+
+```
+
+### Read in & tidy data
+
+```{r}
+lulc_raster <- raster(here("LULC_2019_data", "LULC_2019tif.tif"))
+
+lulc_pts <- rasterToPoints(lulc_raster)
+
+lulc_df <- data.frame(lulc_pts) %>% 
+  rename("lon" = "x",
+         "lat" = "y",
+         "value" = "LULC_2019tif")
+
+dbf <- read.dbf(here("LULC_2019_data", "LULC_2019tif.tif.vat.dbf"),
+                as.is = FALSE) %>% 
+  clean_names()
+  
+
+lulc <- inner_join(lulc_df, dbf, 
+                   by = "value")
+
+```
+
+## Map in `ggplot` & `geom_raster`
+
+```{r}
+
+ggplot() + 
+  geom_raster(data = lulc, 
+              aes(x = lon,
+                  y = lat,
+                  fill = class)) +
+  theme_minimal() + 
+  labs(x = NULL,
+       y = NULL,
+       title = "2019 LULC",
+       fill = NULL)
+
+ggsave("lulc_2019.png",
+       width = 7,
+       height = 5)
+
+```
+
+
+```{r}
+
+amistosa <- get_map(location = c(lon = -83.15,
+                                   lat = 8.748),
+                      zoom = 9,
+                      maptype = "terrain-background",
+                      source = "google")
+
+# can determine middle lat and lon pts by using median from summary(lulc)
+
+# if use ggmap, have to include coord_cartesian() + 
+
+# projection still turns out a little weird though... 
+
+ggmap(amistosa) + 
+  geom_raster(data = lulc, 
+              aes(x = lon,
+                  y = lat,
+                  fill = class),
+              alpha = 0.9) +
+  coord_cartesian() +
+  theme_minimal() + 
+  labs(x = NULL,
+       y = NULL,
+       title = "2019 LULC",
+       fill = NULL)
+
+```
+
+## Map in `tmap`
+
+I can't quite figure out how to join the raster file with the categories for this... 
+
+```{r}
+
+tmap_mode("view")
+
+tm_basemap("CartoDB.VoyagerNoLabels") + 
+  tm_shape(lulc_raster) + 
+  tm_raster() + 
+  tm_layout(title = "LULC in Amistosa Corridor (2019)")
+
+
+```
+
